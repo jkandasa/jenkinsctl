@@ -186,7 +186,7 @@ func (jc *Client) ListParameters(jobName string) ([]gojenkins.ParameterDefinitio
 }
 
 // DownloadArtifacts of a build
-func (jc *Client) DownloadArtifacts(jobName string, buildNumber int, toDirectory string) (string, error) {
+func (jc *Client) DownloadArtifacts(out io.Writer, jobName string, buildNumber int, toDirectory string) (string, error) {
 	directoryFinal := filepath.Join(toDirectory, jobName, strconv.Itoa(buildNumber))
 	build, err := jc.api.GetBuild(jc.ctx, jobName, int64(buildNumber))
 	if err != nil {
@@ -194,7 +194,15 @@ func (jc *Client) DownloadArtifacts(jobName string, buildNumber int, toDirectory
 	}
 
 	dirSplitter := fmt.Sprintf("%d/artifact/", buildNumber)
-	for _, a := range build.GetArtifacts() {
+
+	artifacts := build.GetArtifacts()
+
+	if len(artifacts) == 0 {
+		fmt.Fprintln(out, "no artifacts found")
+		return "", nil
+	}
+
+	for _, a := range artifacts {
 		subDir := ""
 		if dirs := strings.SplitAfterN(a.Path, dirSplitter, 2); len(dirs) > 1 {
 			subDir = filepath.Dir(dirs[1])
