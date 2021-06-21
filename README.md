@@ -32,7 +32,7 @@ $ jenkinsctl get parameters
 NAME  	DEFAULT VALUE	TYPE                      	DESCRIPTION   
 PARAM1	test         	StringParameterDefinition 	Param value 1	
 PARAM2	test2        	StringParameterDefinition 	Param value 2	
-PARAM2	true         	BooleanParameterDefinition	Param value 3	
+PARAM3	true         	BooleanParameterDefinition	Param value 3	
 
 # sample build config file
 $ cat example_build.yaml
@@ -70,7 +70,7 @@ Timestamp      	2021-06-21 22:26:09.756 +0530 IST
 Parameters:
 PARAM1	custom value 1	
 PARAM2	custom value 2	
-PARAM2	              	
+PARAM3	              	
 
 Test Result:
 KEY     	VALUE 
@@ -92,7 +92,7 @@ parameters:
   value: custom value 1
 - name: PARAM2
   value: custom value 2
-- name: PARAM2
+- name: PARAM3
   value: ""
 injected_env_vars: {}
 causes:
@@ -132,7 +132,7 @@ $ jenkinsctl get build 11 --output json --pretty
    "value": "custom value 2"
   },
   {
-   "name": "PARAM2",
+   "name": "PARAM3",
    "value": ""
   }
  ],
