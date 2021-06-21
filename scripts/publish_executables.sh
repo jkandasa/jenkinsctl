@@ -19,7 +19,7 @@ go mod tidy
 
 
 # platforms to build
-PLATFORMS=("linux/arm" "linux/arm64" "linux/386" "linux/amd64" "linux/ppc64" "linux/ppc64le" "linux/s390x" "darwin/386" "darwin/amd64" "windows/386" "windows/amd64")
+PLATFORMS=("linux/arm" "linux/arm64" "linux/386" "linux/amd64" "linux/ppc64" "linux/ppc64le" "linux/s390x" "darwin/amd64" "windows/386" "windows/amd64")
 
 # compile
 for platform in "${PLATFORMS[@]}"
