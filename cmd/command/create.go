@@ -16,7 +16,10 @@ var (
 func init() {
 	rootCmd.AddCommand(createResource)
 	createResource.PersistentFlags().StringVarP(&resourceFile, "file", "f", "", "resource file")
-	createResource.MarkPersistentFlagRequired("file")
+	err := createResource.MarkPersistentFlagRequired("file")
+	if err != nil {
+		fmt.Fprintln(ioStreams.ErrOut, "error on fixing a flag", err)
+	}
 }
 
 var createResource = &cobra.Command{

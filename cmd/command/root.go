@@ -49,6 +49,8 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	CONFIG = &config.Config{}
+
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.jenkinsctl.yaml)")
@@ -113,8 +115,6 @@ func initConfig() {
 		if err != nil {
 			fmt.Fprint(ioStreams.ErrOut, "error on unmarshal of config\n", err)
 		}
-	} else {
-		fmt.Fprint(ioStreams.ErrOut, "error on loading config\n", err)
 	}
 
 	if jobContext != "" {

@@ -18,7 +18,10 @@ func init() {
 	downloadCmd.AddCommand(downloadArtifacts)
 	downloadArtifacts.PersistentFlags().StringVar(&artifactSaveLocation, "to-dir", "./", "directory to save artifacts")
 	downloadArtifacts.PersistentFlags().IntVar(&buildNumber, "build-number", 0, "build number from the job")
-	downloadArtifacts.MarkPersistentFlagRequired("build-number")
+	err := downloadArtifacts.MarkPersistentFlagRequired("build-number")
+	if err != nil {
+		fmt.Fprintln(ioStreams.ErrOut, "error on fixing a flag", err)
+	}
 }
 
 var downloadCmd = &cobra.Command{

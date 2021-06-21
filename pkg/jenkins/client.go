@@ -203,7 +203,10 @@ func (jc *Client) DownloadArtifacts(jobName string, buildNumber int, toDirectory
 		if err != nil {
 			return filepath.Join(directoryFinal, subDir), err
 		}
-		a.SaveToDir(jc.ctx, filepath.Join(directoryFinal, subDir))
+		_, err := a.SaveToDir(jc.ctx, filepath.Join(directoryFinal, subDir))
+		if err != nil {
+			return directoryFinal, err
+		}
 	}
 	return directoryFinal, nil
 }
