@@ -47,7 +47,10 @@ var getJobs = &cobra.Command{
 	Use:   "jobs",
 	Short: "Display existing jobs",
 	Example: `  # display existing jobs
-  jenkinsctl jobs`,
+  jenkinsctl jobs
+
+	# display existing jobs with depth flag
+  jenkinsctl jobs --depth 2`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client := jenkins.NewClient(CONFIG)
 		if client == nil {
