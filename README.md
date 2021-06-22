@@ -68,7 +68,7 @@ spec:
 
 # trigger a build
 $ jenkinsctl create --file ./example_build.yaml 
-build created on the job 'test-job-1', build queue id:11
+build created on the job 'test-job-1', build queue id:123
 ```
 #### Display past builds
 ```bash
