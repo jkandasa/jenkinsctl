@@ -24,7 +24,7 @@ Server Version: 2.289.1
 ```
 #### Display jobs
 ```bash
-$ go run cmd/main.go jobs
+$ jenkinsctl jobs
 COLOR   	NAME                      	CLASS                                         	URL                                                   
         	JobFolder1/job/Foleder2   	com.cloudbees.hudson.plugins.folder.Folder    	http://localhost:8080/job/JobFolder1/job/Foleder2/   	
 notbuilt	JobFolder1/job/folder-job1	hudson.model.FreeStyleProject                 	http://localhost:8080/job/JobFolder1/job/folder-job1/	
@@ -32,7 +32,7 @@ red     	pipeline job              	org.jenkinsci.plugins.workflow.job.WorkflowJ
 blue    	test-job-1                	hudson.model.FreeStyleProject                 	http://localhost:8080/job/test-job-1/                	
 notbuilt	test-job-2                	hudson.model.FreeStyleProject                 	http://localhost:8080/job/test-job-2/              	
 
-$ go run cmd/main.go jobs --depth 2
+$ jenkinsctl jobs --depth 2
 COLOR   	NAME                                     	CLASS                                         	URL                                                                    
 blue    	JobFolder1/job/Foleder2/job/hello-job 123	hudson.model.FreeStyleProject                 	http://localhost:8080/job/JobFolder1/job/Foleder2/job/hello-job%20123/	
 notbuilt	JobFolder1/job/folder-job1               	hudson.model.FreeStyleProject                 	http://localhost:8080/job/JobFolder1/job/folder-job1/                 	
