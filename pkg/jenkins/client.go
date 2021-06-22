@@ -44,8 +44,61 @@ func (jc *Client) Version() string {
 }
 
 // ListJobs details
-func (jc *Client) ListJobs() ([]gojenkins.InnerJob, error) {
-	return jc.api.GetAllJobNames(jc.ctx)
+func (jc *Client) ListJobs(depth int) ([]gojenkins.InnerJob, error) {
+	immediateJobs, err := jc.api.GetAllJobNames(jc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	if depth == 0 {
+		return immediateJobs, nil
+	}
+	finalJobs := make([]gojenkins.InnerJob, 0)
+	for _, jobRaw := range immediateJobs {
+		if jobRaw.Class == "com.cloudbees.hudson.plugins.folder.Folder" {
+			job, err := jc.api.GetJob(jc.ctx, jobRaw.Name)
+			if err != nil {
+				return nil, err
+			}
+			receivedJobs, err := jc.getInnerJobs(job, 0, depth)
+			if err != nil {
+				return nil, err
+			}
+			if len(receivedJobs) > 0 {
+				finalJobs = append(finalJobs, receivedJobs...)
+			}
+		} else {
+			finalJobs = append(finalJobs, jobRaw)
+		}
+	}
+	return finalJobs, nil
+}
+
+func (jc *Client) getInnerJobs(job *gojenkins.Job, depth, limit int) ([]gojenkins.InnerJob, error) {
+	if depth == limit {
+		return nil, nil
+	}
+	finalJobs := make([]gojenkins.InnerJob, 0)
+
+	jobsList, err := job.GetInnerJobs(jc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, jobInner := range jobsList {
+		if jobInner.GetDetails().Class == "com.cloudbees.hudson.plugins.folder.Folder" {
+			receivedJobs, err := jc.getInnerJobs(jobInner, depth+1, limit)
+			if err != nil {
+				return nil, err
+			}
+			if len(receivedJobs) > 0 {
+				finalJobs = append(finalJobs, receivedJobs...)
+			}
+		} else {
+			finalJobs = append(finalJobs, gojenkins.InnerJob{
+				Color: jobInner.GetDetails().Color, Name: jobInner.GetDetails().FullName,
+				Class: jobInner.GetDetails().Class, Url: jobInner.GetDetails().URL})
+		}
+	}
+	return finalJobs, nil
 }
 
 // Status of the server

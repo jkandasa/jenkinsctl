@@ -13,6 +13,8 @@ import (
 type Job struct {
 	Name  string `json:"name" yaml:"name" structs:"name"`
 	Class string `json:"class" yaml:"class" structs:"class"`
+	URL   string `json:"url" yaml:"url" structs:"url"`
+	Color string `json:"color" yaml:"color" structs:"color"`
 }
 
 // JobParameters struct
@@ -142,7 +144,12 @@ var getBuilds = &cobra.Command{
 		} else {
 			builds, err := client.ListBuilds(CONFIG.JobContext, limit, false)
 			if err != nil {
-				fmt.Fprintf(ioStreams.ErrOut, "error on listing builds. error:[%s]", err.Error())
+				if err.Error() == "404" {
+					fmt.Fprintln(ioStreams.Out, "no builds available.")
+					return
+				}
+				fmt.Fprintf(ioStreams.ErrOut, "error on listing builds. error:%s\n", err.Error())
+				return
 			}
 
 			headers := []string{"number", "triggered by", "result", "is running", "duration", "timestamp", "revision"}
@@ -172,7 +179,12 @@ var getParameters = &cobra.Command{
 
 		parameters, err := client.ListParameters(CONFIG.JobContext)
 		if err != nil {
-			fmt.Fprintf(ioStreams.ErrOut, "error on listing parameters. error:[%s]", err.Error())
+			if err.Error() == "404" {
+				fmt.Fprintln(ioStreams.Out, "no paramaters available.")
+				return
+			}
+			fmt.Fprintf(ioStreams.ErrOut, "error on listing parameters. error:%s\n", err.Error())
+			return
 		}
 		headers := []string{"name", "default value", "type", "description"}
 		data := make([]interface{}, 0)
@@ -206,7 +218,6 @@ var getConsole = &cobra.Command{
 			return
 		}
 
-		// old
 		client := jenkins.NewClient(CONFIG)
 		if client == nil {
 			return
@@ -214,7 +225,11 @@ var getConsole = &cobra.Command{
 
 		consoleLog, err := client.GetConsole(CONFIG.JobContext, buildNumber, watch, ioStreams.Out)
 		if err != nil {
-			fmt.Fprintf(ioStreams.ErrOut, "error on listing build console. error:[%s]", err.Error())
+			if err.Error() == "404" {
+				fmt.Fprintf(ioStreams.ErrOut, "there is no build wih number %d\n", buildNumber)
+				return
+			}
+			fmt.Fprintf(ioStreams.ErrOut, "error on listing build console. error:%s\n", err.Error())
 			return
 		}
 

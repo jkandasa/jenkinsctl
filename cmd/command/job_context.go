@@ -9,10 +9,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	depth int
+)
+
 func init() {
 	rootCmd.AddCommand(jobContextCmd)
 	rootCmd.AddCommand(getJobs)
 
+	getJobs.PersistentFlags().IntVar(&depth, "depth", 1, "scan depth of a folder job")
 }
 
 var jobContextCmd = &cobra.Command{
@@ -48,15 +53,15 @@ var getJobs = &cobra.Command{
 		if client == nil {
 			return
 		}
-		jobs, err := client.ListJobs()
+		jobs, err := client.ListJobs(depth)
 		if err != nil {
 			fmt.Fprintf(ioStreams.ErrOut, "error on listing jobs. error:[%s]", err.Error())
 		}
 
-		headers := []string{"name", "class"}
+		headers := []string{"color", "name", "class", "url"}
 		data := make([]interface{}, 0)
 		for _, job := range jobs {
-			data = append(data, Job{Name: job.Name, Class: job.Class})
+			data = append(data, Job{Name: job.Name, Class: job.Class, URL: job.Url, Color: job.Color})
 		}
 		printer.Print(ioStreams.Out, headers, data, hideHeader, outputFormat, pretty)
 	},
