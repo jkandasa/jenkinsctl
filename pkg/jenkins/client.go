@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,18 +13,20 @@ import (
 	"time"
 
 	"github.com/bndr/gojenkins"
+	"github.com/jkandasa/jenkinsctl/pkg/model"
 	"github.com/jkandasa/jenkinsctl/pkg/model/config"
 	jenkinsML "github.com/jkandasa/jenkinsctl/pkg/model/jenkins"
 )
 
 // Client type
 type Client struct {
-	api *gojenkins.Jenkins
-	ctx context.Context
+	ioStreams *model.IOStreams
+	api       *gojenkins.Jenkins
+	ctx       context.Context
 }
 
 // NewClient function to get client instance
-func NewClient(cfg *config.Config) *Client {
+func NewClient(cfg *config.Config, streams *model.IOStreams) *Client {
 	httpClient := http.DefaultClient
 	httpClient.Transport = http.DefaultTransport
 	httpClient.Transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.InsecureSkipTLSVerify}
@@ -36,7 +37,7 @@ func NewClient(cfg *config.Config) *Client {
 	if err != nil {
 		log.Fatalf("error on login, %s", err.Error())
 	}
-	return &Client{api: jenkins, ctx: ctx}
+	return &Client{api: jenkins, ctx: ctx, ioStreams: streams}
 }
 
 func (jc *Client) Version() string {
@@ -59,7 +60,7 @@ func (jc *Client) ListJobs(depth int) ([]gojenkins.InnerJob, error) {
 			if err != nil {
 				return nil, err
 			}
-			receivedJobs, err := jc.getInnerJobs(job, 0, depth)
+			receivedJobs, err := jc.getInnerJobs(job.GetName(), job, 0, depth)
 			if err != nil {
 				return nil, err
 			}
@@ -73,9 +74,14 @@ func (jc *Client) ListJobs(depth int) ([]gojenkins.InnerJob, error) {
 	return finalJobs, nil
 }
 
-func (jc *Client) getInnerJobs(job *gojenkins.Job, depth, limit int) ([]gojenkins.InnerJob, error) {
+func (jc *Client) getInnerJobs(parent string, job *gojenkins.Job, depth, limit int) ([]gojenkins.InnerJob, error) {
 	if depth == limit {
-		return nil, nil
+		if job == nil {
+			return nil, nil
+		}
+		return []gojenkins.InnerJob{{
+			Color: job.GetDetails().Color, Name: parent,
+			Class: job.GetDetails().Class, Url: job.GetDetails().URL}}, nil
 	}
 	finalJobs := make([]gojenkins.InnerJob, 0)
 
@@ -84,8 +90,9 @@ func (jc *Client) getInnerJobs(job *gojenkins.Job, depth, limit int) ([]gojenkin
 		return nil, err
 	}
 	for _, jobInner := range jobsList {
+		jobName := fmt.Sprintf("%s/job/%s", parent, jobInner.GetName())
 		if jobInner.GetDetails().Class == "com.cloudbees.hudson.plugins.folder.Folder" {
-			receivedJobs, err := jc.getInnerJobs(jobInner, depth+1, limit)
+			receivedJobs, err := jc.getInnerJobs(jobName, jobInner, depth+1, limit)
 			if err != nil {
 				return nil, err
 			}
@@ -94,7 +101,7 @@ func (jc *Client) getInnerJobs(job *gojenkins.Job, depth, limit int) ([]gojenkin
 			}
 		} else {
 			finalJobs = append(finalJobs, gojenkins.InnerJob{
-				Color: jobInner.GetDetails().Color, Name: jobInner.GetDetails().FullName,
+				Color: jobInner.GetDetails().Color, Name: jobName,
 				Class: jobInner.GetDetails().Class, Url: jobInner.GetDetails().URL})
 		}
 	}
@@ -198,7 +205,7 @@ func (jc *Client) ListBuilds(jobName string, limit int, withConsole bool) ([]jen
 }
 
 // GetConsole returns/prints build console log
-func (jc *Client) GetConsole(jobName string, buildNumber int, watch bool, out io.Writer) (string, error) {
+func (jc *Client) GetConsole(jobName string, buildNumber int, watch bool) (string, error) {
 	build, err := jc.api.GetBuild(jc.ctx, jobName, int64(buildNumber))
 	if err != nil {
 		return "", err
@@ -218,7 +225,7 @@ func (jc *Client) GetConsole(jobName string, buildNumber int, watch bool, out io
 			return "", err
 		}
 		if len(console.Content) > 0 {
-			fmt.Fprint(out, console.Content)
+			fmt.Fprint(jc.ioStreams.Out, console.Content)
 		}
 		startID = console.Offset
 		if !console.HasMoreText {
@@ -239,7 +246,7 @@ func (jc *Client) ListParameters(jobName string) ([]gojenkins.ParameterDefinitio
 }
 
 // DownloadArtifacts of a build
-func (jc *Client) DownloadArtifacts(out io.Writer, jobName string, buildNumber int, toDirectory string) (string, error) {
+func (jc *Client) DownloadArtifacts(jobName string, buildNumber int, toDirectory string) (string, error) {
 	directoryFinal := filepath.Join(toDirectory, jobName, strconv.Itoa(buildNumber))
 	build, err := jc.api.GetBuild(jc.ctx, jobName, int64(buildNumber))
 	if err != nil {
@@ -251,7 +258,7 @@ func (jc *Client) DownloadArtifacts(out io.Writer, jobName string, buildNumber i
 	artifacts := build.GetArtifacts()
 
 	if len(artifacts) == 0 {
-		fmt.Fprintln(out, "no artifacts found")
+		fmt.Fprintln(jc.ioStreams.Out, "no artifacts found")
 		return "", nil
 	}
 

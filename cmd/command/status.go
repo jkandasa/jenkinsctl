@@ -16,7 +16,7 @@ var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Displays an overview of the jenkins server",
 	Run: func(cmd *cobra.Command, args []string) {
-		client := jenkins.NewClient(CONFIG)
+		client := jenkins.NewClient(CONFIG, &ioStreams)
 		if client == nil {
 			return
 		}

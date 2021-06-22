@@ -18,7 +18,11 @@ var versionCmd = &cobra.Command{
 	Short: "Print the client and server version information",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(ioStreams.Out, "Client Version:", version.Get().String())
-		client := jenkins.NewClient(CONFIG)
+		if CONFIG.URL == "" {
+			fmt.Fprintln(ioStreams.Out, "Server Version: not logged in")
+			return
+		}
+		client := jenkins.NewClient(CONFIG, &ioStreams)
 		if client != nil {
 			fmt.Fprintln(ioStreams.Out, "Server Version:", client.Version())
 		}

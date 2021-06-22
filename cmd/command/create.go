@@ -40,7 +40,7 @@ var createResource = &cobra.Command{
 			return
 		}
 
-		client := jenkins.NewClient(CONFIG)
+		client := jenkins.NewClient(CONFIG, &ioStreams)
 		if client == nil {
 			return
 		}

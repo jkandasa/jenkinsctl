@@ -27,6 +27,10 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Log in to a server",
 	Example: `  # login to the server with username and password/token
+	export TOKEN=$(cat my_token.txt)
+  jenkinsctl login http://localhost:8080 --username jenkins --password ${TOKEN}
+	
+	# login to the server with username and password/token
   jenkinsctl login http://localhost:8080 --username jenkins --password my_token
 
   # login to the insecure server (with SSL certificate)
@@ -37,7 +41,7 @@ var loginCmd = &cobra.Command{
 		CONFIG.Username = username
 		CONFIG.Password = password
 		CONFIG.InsecureSkipTLSVerify = insecureSkipTLSVerify
-		client := jenkins.NewClient(CONFIG)
+		client := jenkins.NewClient(CONFIG, &ioStreams)
 		if client != nil {
 			fmt.Fprintln(ioStreams.ErrOut, "Login successful.")
 			WriteConfigFile()
@@ -51,12 +55,16 @@ var logoutCmd = &cobra.Command{
 	Example: `  # logout from a server
   jenkinsctl logout`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CONFIG.URL == "" {
+			fmt.Fprintln(ioStreams.ErrOut, "There is no connection information.")
+			return
+		}
 		CONFIG.URL = ""
 		CONFIG.Username = ""
 		CONFIG.Password = ""
 		CONFIG.InsecureSkipTLSVerify = false
 		CONFIG.JobContext = ""
-		fmt.Fprintln(ioStreams.ErrOut, "Logout successful.")
+		fmt.Fprintln(ioStreams.Out, "Logout successful.")
 		WriteConfigFile()
 	},
 }

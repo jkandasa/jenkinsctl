@@ -3,7 +3,7 @@
 Inspired by `kubectl` and `oc` (OpenShift) client.
 
 ### Download the client
-* [Releases](https://github.com/jkandasa/jenkinsctl/releases)
+* [Releases](https://github.com/jkandasa/jenkinsctl/releases/latest)
 
 ### Examples
 To get login token,
@@ -24,12 +24,21 @@ Server Version: 2.289.1
 ```
 #### Display jobs
 ```bash
-# display jobs
-$ jenkinsctl jobs
-NAME      	CLASS                                      
-JobFolder1	com.cloudbees.hudson.plugins.folder.Folder	
-test-job-1	hudson.model.FreeStyleProject             	
-test-job-2	hudson.model.FreeStyleProject 
+$ go run cmd/main.go jobs
+COLOR   	NAME                      	CLASS                                         	URL                                                   
+        	JobFolder1/job/Foleder2   	com.cloudbees.hudson.plugins.folder.Folder    	http://localhost:8080/job/JobFolder1/job/Foleder2/   	
+notbuilt	JobFolder1/job/folder-job1	hudson.model.FreeStyleProject                 	http://localhost:8080/job/JobFolder1/job/folder-job1/	
+red     	pipeline job              	org.jenkinsci.plugins.workflow.job.WorkflowJob	http://localhost:8080/job/pipeline%20job/            	
+blue    	test-job-1                	hudson.model.FreeStyleProject                 	http://localhost:8080/job/test-job-1/                	
+notbuilt	test-job-2                	hudson.model.FreeStyleProject                 	http://localhost:8080/job/test-job-2/              	
+
+$ go run cmd/main.go jobs --depth 2
+COLOR   	NAME                                     	CLASS                                         	URL                                                                    
+blue    	JobFolder1/job/Foleder2/job/hello-job 123	hudson.model.FreeStyleProject                 	http://localhost:8080/job/JobFolder1/job/Foleder2/job/hello-job%20123/	
+notbuilt	JobFolder1/job/folder-job1               	hudson.model.FreeStyleProject                 	http://localhost:8080/job/JobFolder1/job/folder-job1/                 	
+red     	pipeline job                             	org.jenkinsci.plugins.workflow.job.WorkflowJob	http://localhost:8080/job/pipeline%20job/                             	
+blue    	test-job-1                               	hudson.model.FreeStyleProject                 	http://localhost:8080/job/test-job-1/                                 	
+notbuilt	test-job-2                               	hudson.model.FreeStyleProject                 	http://localhost:8080/job/test-job-2/  
 ```
 
 #### Switch to a job
@@ -180,7 +189,7 @@ $ jenkinsctl get build 11 --output json --pretty
  "artifacts": null
 ```
 #### Display the console log of a build
-```
+```bash
 $ jenkinsctl get console 11
 Started by user Jeeva Kandasamy
 Running as SYSTEM
@@ -193,4 +202,12 @@ Mon 21 Jun 2021 04:56:09 PM UTC
 + hostname
 33501f943b12
 Finished: SUCCESS
+
+# watch running builds console logs
+$ jenkinsctl get console 12 --watch
+Started by user Jeeva Kandasamy
+Running as SYSTEM
+Building in workspace /var/jenkins_home/workspace/test-job-1
+[test-job-1] $ /bin/sh -xe /tmp/jenkins2269490024621194842.sh
+...
 ```

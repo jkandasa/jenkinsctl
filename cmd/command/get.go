@@ -80,7 +80,7 @@ var getBuilds = &cobra.Command{
   jenkinsctl get build 61`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		client := jenkins.NewClient(CONFIG)
+		client := jenkins.NewClient(CONFIG, &ioStreams)
 		if client == nil {
 			return
 		}
@@ -172,7 +172,7 @@ var getParameters = &cobra.Command{
   # get parametes as yaml
   jenkinsctl get parameters --output yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client := jenkins.NewClient(CONFIG)
+		client := jenkins.NewClient(CONFIG, &ioStreams)
 		if client == nil {
 			return
 		}
@@ -218,15 +218,15 @@ var getConsole = &cobra.Command{
 			return
 		}
 
-		client := jenkins.NewClient(CONFIG)
+		client := jenkins.NewClient(CONFIG, &ioStreams)
 		if client == nil {
 			return
 		}
 
-		consoleLog, err := client.GetConsole(CONFIG.JobContext, buildNumber, watch, ioStreams.Out)
+		consoleLog, err := client.GetConsole(CONFIG.JobContext, buildNumber, watch)
 		if err != nil {
 			if err.Error() == "404" {
-				fmt.Fprintf(ioStreams.ErrOut, "there is no build wih number %d\n", buildNumber)
+				fmt.Fprintf(ioStreams.ErrOut, "there is no build number %d\n", buildNumber)
 				return
 			}
 			fmt.Fprintf(ioStreams.ErrOut, "error on listing build console. error:%s\n", err.Error())
