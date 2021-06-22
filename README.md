@@ -6,8 +6,13 @@ Inspired by `kubectl` and `oc` (OpenShift) client.
 * [Releases](https://github.com/jkandasa/jenkinsctl/releases)
 
 ### Examples
+To get login token,
+> The API token is available in your personal configuration page. Click your name on the top right corner on every page, then click "Configure" to see your API token. (The URL `$root/me/configure` is a good shortcut.) You can also change your API token from here.
+
+Source: [Jenkins doc](https://www.jenkins.io/doc/book/system-administration/authenticating-scripted-clients/)
+
+#### Login to jenkins server
 ```bash
-# login into jenkins server
 $ jenkinsctl login http://localhost:8080 --username jeeva --password 11f3d04172eb97b3f4c0287911e5832b00
 Login successful.
 
@@ -16,24 +21,32 @@ $ jenkinsctl version
 Client Version: {version:master, buildDate:2021-06-21T17:09:18+00:00, gitCommit:5878ed77e8c28eeae04cb2311bbe44deabaff6b2, goLangVersion:go1.16.3, platform:linux/amd64}
 Server Version: 2.289.1
 
+```
+#### Display jobs
+```bash
 # display jobs
 $ jenkinsctl jobs
 NAME      	CLASS                                      
 JobFolder1	com.cloudbees.hudson.plugins.folder.Folder	
 test-job-1	hudson.model.FreeStyleProject             	
 test-job-2	hudson.model.FreeStyleProject 
+```
 
-# switch to a job
+#### Switch to a job
+```bash
 $ jenkinsctl job test-job-1
 Switched to 'test-job-1' at 'http://localhost:8080'
-
-# display parameters of the job
+```
+#### Display parameters of the job
+```bash
 $ jenkinsctl get parameters
 NAME  	DEFAULT VALUE	TYPE                      	DESCRIPTION   
 PARAM1	test         	StringParameterDefinition 	Param value 1	
 PARAM2	test2        	StringParameterDefinition 	Param value 2	
 PARAM3	true         	BooleanParameterDefinition	Param value 3	
-
+```
+#### Build a job
+```bash
 # sample build config file
 $ cat example_build.yaml
 kind: build
@@ -47,14 +60,16 @@ spec:
 # trigger a build
 $ jenkinsctl create --file ./example_build.yaml 
 build created on the job 'test-job-1', build queue id:11
-
-# display past builds
+```
+#### Display past builds
+```bash
 $ jenkinsctl get builds --limit 2
 NUMBER	TRIGGERED BY          	RESULT 	IS RUNNING	DURATION	TIMESTAMP                        	REVISION 
 11    	Jeeva Kandasamy(jeeva)	SUCCESS	false     	8ms     	2021-06-21 22:26:09.756 +0530 IST	        	
 10    	Jeeva Kandasamy(jeeva)	SUCCESS	false     	19ms    	2021-06-21 22:25:55.894 +0530 IST	        	
-
-# display details of a build
+```
+#### display details of a build
+```
 $ jenkinsctl get build 11
 KEY            	VALUE                                    
 URL            	http://localhost:8080/job/test-job-1/11/	
@@ -81,8 +96,9 @@ Duration	0s
 
 Artifacts:
 PATH 
-
-# display a build details in yaml format
+```
+#### Display a build details in yaml format
+```bash
 $ jenkinsctl get build 11 --output yaml
 url: http://localhost:8080/job/test-job-1/11/
 number: 11
@@ -115,8 +131,9 @@ test_result:
   skipcount: 0
   suites: []
 artifacts: []
-
-# display a build details in json format
+```
+#### Display a build details in json format
+```bash
 $ jenkinsctl get build 11 --output json --pretty
 {
  "url": "http://localhost:8080/job/test-job-1/11/",
@@ -161,8 +178,9 @@ $ jenkinsctl get build 11 --output json --pretty
   "suites": null
  },
  "artifacts": null
-
-# display the console log of a build
+```
+#### Display the console log of a build
+```
 $ jenkinsctl get console 11
 Started by user Jeeva Kandasamy
 Running as SYSTEM
