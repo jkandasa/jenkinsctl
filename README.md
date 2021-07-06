@@ -4,6 +4,7 @@ Inspired by `kubectl` and `oc` (OpenShift) client.
 
 ### Download the client
 * [Releases](https://github.com/jkandasa/jenkinsctl/releases/latest)
+* [Pre Release](https://github.com/jkandasa/jenkinsctl/releases/tag/master) - `master` branch build
 
 ### Examples
 To get login token,
