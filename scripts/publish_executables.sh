@@ -52,7 +52,7 @@ do
   GOARCH=${platform_raw[1]}
   package_name="jenkinsctl-${GOOS}-${GOARCH}"
 
-  env GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build -o ${BUILD_DIR}/${BINARY_DIR}/${package_name} -ldflags "$LD_FLAGS" cmd/main.go
+  env GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build -o ${BUILD_DIR}/${BINARY_DIR}/${package_name} -ldflags "-s -w $LD_FLAGS" cmd/main.go
   if [ $? -ne 0 ]; then
     echo 'an error has occurred. aborting the build process'
     exit 1
