@@ -6,6 +6,39 @@ Inspired by `kubectl` and `oc` (OpenShift) client.
 * [Releases](https://github.com/jkandasa/jenkinsctl/releases/latest)
 * [Pre Release](https://github.com/jkandasa/jenkinsctl/releases/tag/master) - `master` branch build
 
+### Commands
+```
+$ jenkinsctl --help 
+Jenkins Client
+  
+This client helps you to control your jenkins server from command line.
+
+Usage:
+  jenkinsctl [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  create      Create a resource from a file or stdin
+  download    Download resources from Jenkins server
+  get         Display one or many resources
+  help        Help about any command
+  job         Switch or set a job
+  jobs        Display existing jobs
+  login       Log in to a server
+  logout      Log out from a server
+  status      Displays an overview of the jenkins server
+  version     Print the client and server version information
+
+Flags:
+      --config string   config file (default is $HOME/.jenkinsctl.yaml)
+  -h, --help            help for jenkinsctl
+      --hide-header     hides the header on the console output
+  -j, --job string      Switch to another job
+  -o, --output string   output format. options: yaml, json, console (default "console")
+      --pretty          JSON pretty print
+
+Use "jenkinsctl [command] --help" for more information about a command.
+```
 ### Examples
 To get login token,
 > The API token is available in your personal configuration page. Click your name on the top right corner on every page, then click "Configure" to see your API token. (The URL `$root/me/configure` is a good shortcut.) You can also change your API token from here.

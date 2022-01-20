@@ -26,7 +26,7 @@ func init() {
 
 var createResource = &cobra.Command{
 	Use:   "create",
-	Short: "Create a resource from a file",
+	Short: "Create a resource from a file or stdin",
 	Example: `  # create a build using the date in yaml file
   jenkinsctl create -f my_build.yaml
 
