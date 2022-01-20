@@ -2,10 +2,12 @@ package command
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	jenkins "github.com/jkandasa/jenkinsctl/pkg/jenkins"
 	cliML "github.com/jkandasa/jenkinsctl/pkg/model/cli"
 	"github.com/jkandasa/jenkinsctl/pkg/utils"
+	stdinUtils "github.com/jkandasa/jenkinsctl/pkg/utils/read_stdin"
 	"github.com/spf13/cobra"
 )
 
@@ -27,6 +29,9 @@ var createResource = &cobra.Command{
 	Short: "Create a resource from a file",
 	Example: `  # create a build using the date in yaml file
   jenkinsctl create -f my_build.yaml
+
+  # create a build based on the YAML passed into stdin.
+  cat my_build.yaml | jenkinsctl create -f -
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if CONFIG.JobContext == "" {
@@ -34,7 +39,24 @@ var createResource = &cobra.Command{
 			return
 		}
 
-		resourceInterface, err := utils.GetResource(resourceFile)
+		var data []byte
+		if resourceFile == "-" { // process's standard input
+			stdinData, err := stdinUtils.ReadStdIn()
+			if err != nil {
+				fmt.Fprintln(ioStreams.ErrOut, err)
+				return
+			}
+			data = stdinData
+		} else {
+			bytes, err := ioutil.ReadFile(resourceFile)
+			if err != nil {
+				fmt.Fprintln(ioStreams.ErrOut, err)
+				return
+			}
+			data = bytes
+		}
+
+		resourceInterface, err := utils.GetResource(data)
 		if err != nil {
 			fmt.Fprintln(ioStreams.ErrOut, err)
 			return

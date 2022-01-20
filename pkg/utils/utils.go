@@ -23,9 +23,9 @@ func FileToStruct(filename string, out interface{}) error {
 	return yaml.Unmarshal(bytes, out)
 }
 
-func GetResource(filename string) (interface{}, error) {
+func GetResource(bytes []byte) (interface{}, error) {
 	kindData := &cliML.Kind{}
-	err := FileToStruct(filename, kindData)
+	err := yaml.Unmarshal(bytes, kindData)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func GetResource(filename string) (interface{}, error) {
 		return nil, fmt.Errorf("unknown kind:%s", kindData.Kind)
 	}
 
-	if err = FileToStruct(filename, resource); err != nil {
+	if err = yaml.Unmarshal(bytes, resource); err != nil {
 		return nil, err
 	}
 	return resource, nil
