@@ -16,7 +16,11 @@ var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Displays an overview of the jenkins server",
 	Run: func(cmd *cobra.Command, args []string) {
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client == nil {
 			return
 		}

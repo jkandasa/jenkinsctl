@@ -35,7 +35,11 @@ var downloadArtifacts = &cobra.Command{
 	Short:   "Download artifact of a build",
 	Example: `  jenkinsctl download artifact --build-number 2101 --to-dir /tmp/artifacts`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client == nil {
 			return
 		}

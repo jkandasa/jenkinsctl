@@ -62,7 +62,11 @@ var createResource = &cobra.Command{
 			return
 		}
 
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client == nil {
 			return
 		}

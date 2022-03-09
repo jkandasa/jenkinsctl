@@ -13,11 +13,11 @@ const (
 
 // Config used across to access the jenkins
 type Config struct {
-	URL                   string `yaml:"url" mapstructure:"url"`
-	InsecureSkipTLSVerify bool   `yaml:"insecure_skip_tls_verify" mapstructure:"insecure_skip_tls_verify"`
-	Username              string `yaml:"username" mapstructure:"username"`
-	Password              string `yaml:"password" mapstructure:"password"` // encode as base64
-	JobContext            string `yaml:"job_context" mapstructure:"job_context"`
+	URL        string `yaml:"url" mapstructure:"url"`
+	Insecure   bool   `yaml:"insecure" mapstructure:"insecure"`
+	Username   string `yaml:"username" mapstructure:"username"`
+	Password   string `yaml:"password" mapstructure:"password"` // encode as base64
+	JobContext string `yaml:"job_context" mapstructure:"job_context"`
 }
 
 // GetPassword decodes and returns the password

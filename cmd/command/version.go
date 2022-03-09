@@ -22,7 +22,11 @@ var versionCmd = &cobra.Command{
 			fmt.Fprintln(ioStreams.Out, "Server Version: not logged in")
 			return
 		}
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client != nil {
 			fmt.Fprintln(ioStreams.Out, "Server Version:", client.Version())
 		}

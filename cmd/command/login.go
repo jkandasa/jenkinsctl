@@ -8,16 +8,16 @@ import (
 )
 
 var (
-	username              string
-	password              string
-	insecureSkipTLSVerify bool
+	username string
+	password string
+	insecure bool
 )
 
 func init() {
 	rootCmd.AddCommand(loginCmd)
 	loginCmd.Flags().StringVarP(&username, "username", "u", "", "Username to login with jenkins server")
 	loginCmd.Flags().StringVarP(&password, "password", "p", "", "Password or token to login with jenkins server")
-	loginCmd.Flags().BoolVar(&insecureSkipTLSVerify, "insecure-skip-tls-verify", false,
+	loginCmd.Flags().BoolVar(&insecure, "insecure", false,
 		"If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
 
 	rootCmd.AddCommand(logoutCmd)
@@ -34,14 +34,18 @@ var loginCmd = &cobra.Command{
   jenkinsctl login http://localhost:8080 --username jenkins --password my_token
 
   # login to the insecure server (with SSL certificate)
-  jenkinsctl login https://localhost:8443 --username jenkins --password my_token  --insecure-skip-tls-verify`,
+  jenkinsctl login https://localhost:8443 --username jenkins --password my_token  --insecure`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		CONFIG.URL = args[0]
 		CONFIG.Username = username
 		CONFIG.Password = password
-		CONFIG.InsecureSkipTLSVerify = insecureSkipTLSVerify
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		CONFIG.Insecure = insecure
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client != nil {
 			fmt.Fprintln(ioStreams.ErrOut, "Login successful.")
 			WriteConfigFile()
@@ -62,7 +66,7 @@ var logoutCmd = &cobra.Command{
 		CONFIG.URL = ""
 		CONFIG.Username = ""
 		CONFIG.Password = ""
-		CONFIG.InsecureSkipTLSVerify = false
+		CONFIG.Insecure = false
 		CONFIG.JobContext = ""
 		fmt.Fprintln(ioStreams.Out, "Logout successful.")
 		WriteConfigFile()

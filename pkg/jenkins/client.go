@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -26,18 +25,18 @@ type Client struct {
 }
 
 // NewClient function to get client instance
-func NewClient(cfg *config.Config, streams *types.IOStreams) *Client {
+func NewClient(cfg *config.Config, streams *types.IOStreams) (*Client, error) {
 	httpClient := http.DefaultClient
 	httpClient.Transport = http.DefaultTransport
-	httpClient.Transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.InsecureSkipTLSVerify}
+	httpClient.Transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.Insecure}
 
 	ctx := context.TODO()
 	jenkins := gojenkins.CreateJenkins(httpClient, cfg.URL, cfg.Username, cfg.GetPassword())
 	_, err := jenkins.Init(ctx)
 	if err != nil {
-		log.Fatalf("error on login, %s", err.Error())
+		return nil, err
 	}
-	return &Client{api: jenkins, ctx: ctx, ioStreams: streams}
+	return &Client{api: jenkins, ctx: ctx, ioStreams: streams}, nil
 }
 
 func (jc *Client) Version() string {

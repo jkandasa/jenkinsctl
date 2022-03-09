@@ -85,7 +85,11 @@ var getBuilds = &cobra.Command{
   jenkinsctl get build --queue-id 1234`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client == nil {
 			return
 		}
@@ -195,7 +199,11 @@ var getParameters = &cobra.Command{
   # get parametes as yaml
   jenkinsctl get parameters --output yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client == nil {
 			return
 		}
@@ -241,7 +249,11 @@ var getConsole = &cobra.Command{
 			return
 		}
 
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client == nil {
 			return
 		}

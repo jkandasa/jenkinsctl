@@ -34,7 +34,11 @@ var jobContextCmd = &cobra.Command{
 			fmt.Fprintf(ioStreams.ErrOut, "Current job '%s' at '%s'\n", CONFIG.JobContext, CONFIG.URL)
 			return
 		}
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client != nil {
 			CONFIG.JobContext = strings.TrimSpace(args[0])
 			WriteConfigFile()
@@ -52,7 +56,11 @@ var getJobs = &cobra.Command{
 	# display existing jobs with depth flag
   jenkinsctl jobs --depth 2`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client := jenkins.NewClient(CONFIG, &ioStreams)
+		client, err := jenkins.NewClient(CONFIG, &ioStreams)
+		if err != nil {
+			fmt.Fprintln(ioStreams.ErrOut, "error on login", err)
+			return
+		}
 		if client == nil {
 			return
 		}
