@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	jenkins "github.com/jkandasa/jenkinsctl/pkg/jenkins"
-	cliML "github.com/jkandasa/jenkinsctl/pkg/model/cli"
+	cliTY "github.com/jkandasa/jenkinsctl/pkg/types/cli"
 	"github.com/jkandasa/jenkinsctl/pkg/utils"
 	stdinUtils "github.com/jkandasa/jenkinsctl/pkg/utils/read_stdin"
 	"github.com/spf13/cobra"
@@ -68,7 +68,7 @@ var createResource = &cobra.Command{
 		}
 
 		switch resource := resourceInterface.(type) {
-		case *cliML.KindBuild:
+		case *cliTY.KindBuild:
 			buildQueueId, err := client.Build(resource.Spec.JobName, resource.Spec.Parameters)
 			if err != nil {
 				fmt.Fprintln(ioStreams.ErrOut, err)
@@ -77,7 +77,7 @@ var createResource = &cobra.Command{
 			fmt.Fprintf(ioStreams.Out, "build created on the job '%s', build queue id:%d\n", resource.Spec.JobName, buildQueueId)
 			return
 
-		case *cliML.KindJob:
+		case *cliTY.KindJob:
 			jobName, err := client.CreateJob(resource.Spec.JobName, resource.Spec.XMLData)
 			if err != nil {
 				fmt.Fprintln(ioStreams.ErrOut, err)

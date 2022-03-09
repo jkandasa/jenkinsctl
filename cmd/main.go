@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/jkandasa/jenkinsctl/cmd/command"
-	"github.com/jkandasa/jenkinsctl/pkg/model"
+	types "github.com/jkandasa/jenkinsctl/pkg/types"
 )
 
 func main() {
-	streams := model.NewStdStreams()
+	streams := types.NewStdStreams()
 	command.Execute(streams)
 }

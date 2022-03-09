@@ -13,20 +13,20 @@ import (
 	"time"
 
 	"github.com/bndr/gojenkins"
-	"github.com/jkandasa/jenkinsctl/pkg/model"
-	"github.com/jkandasa/jenkinsctl/pkg/model/config"
-	jenkinsML "github.com/jkandasa/jenkinsctl/pkg/model/jenkins"
+	types "github.com/jkandasa/jenkinsctl/pkg/types"
+	"github.com/jkandasa/jenkinsctl/pkg/types/config"
+	jenkinsTY "github.com/jkandasa/jenkinsctl/pkg/types/jenkins"
 )
 
 // Client type
 type Client struct {
-	ioStreams *model.IOStreams
+	ioStreams *types.IOStreams
 	api       *gojenkins.Jenkins
 	ctx       context.Context
 }
 
 // NewClient function to get client instance
-func NewClient(cfg *config.Config, streams *model.IOStreams) *Client {
+func NewClient(cfg *config.Config, streams *types.IOStreams) *Client {
 	httpClient := http.DefaultClient
 	httpClient.Transport = http.DefaultTransport
 	httpClient.Transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.InsecureSkipTLSVerify}
@@ -114,15 +114,16 @@ func (jc *Client) Status() (*gojenkins.ExecutorResponse, error) {
 }
 
 // GetBuild returns build details of a job
-func (jc *Client) GetBuild(jobName string, buildNumber int, withConsole bool) (*jenkinsML.BuildResponse, error) {
+func (jc *Client) GetBuild(jobName string, buildNumber int, withConsole bool) (*jenkinsTY.BuildResponse, error) {
 	buildRaw, err := jc.api.GetBuild(jc.ctx, jobName, int64(buildNumber))
 	if err != nil {
 		return nil, err
 	}
 
-	build := jenkinsML.BuildResponse{
-		URL:    buildRaw.GetUrl(),
-		Number: buildRaw.GetBuildNumber(),
+	build := jenkinsTY.BuildResponse{
+		QueueID: buildRaw.Raw.QueueID,
+		URL:     buildRaw.GetUrl(),
+		Number:  buildRaw.GetBuildNumber(),
 	}
 	// update triggered by
 	if causes, err := buildRaw.GetCauses(jc.ctx); err == nil {
@@ -140,9 +141,9 @@ func (jc *Client) GetBuild(jobName string, buildNumber int, withConsole bool) (*
 		}
 	}
 
-	build.Parameters = make([]jenkinsML.Parameter, 0)
+	build.Parameters = make([]jenkinsTY.Parameter, 0)
 	for _, p := range buildRaw.GetParameters() {
-		build.Parameters = append(build.Parameters, jenkinsML.Parameter{Name: p.Name, Value: fmt.Sprintf("%v", p.Value)})
+		build.Parameters = append(build.Parameters, jenkinsTY.Parameter{Name: p.Name, Value: fmt.Sprintf("%v", p.Value)})
 	}
 
 	if injectedEnvVars, err := buildRaw.GetInjectedEnvVars(jc.ctx); err != nil {
@@ -168,7 +169,7 @@ func (jc *Client) GetBuild(jobName string, buildNumber int, withConsole bool) (*
 	}
 
 	for _, artifact := range buildRaw.GetArtifacts() {
-		build.Artifacts = append(build.Artifacts, jenkinsML.Artifact{FileName: artifact.FileName, Path: artifact.Path})
+		build.Artifacts = append(build.Artifacts, jenkinsTY.Artifact{FileName: artifact.FileName, Path: artifact.Path})
 	}
 
 	if withConsole {
@@ -184,9 +185,23 @@ func (jc *Client) GetBuild(jobName string, buildNumber int, withConsole bool) (*
 	return &build, nil
 }
 
+// returns build details based on queue id
+func (jc *Client) GetBuildByQueueID(jobName string, queueID int64, limit int) (*jenkinsTY.BuildResponse, error) {
+	jobs, err := jc.ListBuilds(jobName, limit, false)
+	if err != nil {
+		return nil, err
+	}
+	for _, job := range jobs {
+		if job.QueueID == queueID {
+			return &job, nil
+		}
+	}
+	return nil, nil
+}
+
 // ListBuilds details
-func (jc *Client) ListBuilds(jobName string, limit int, withConsole bool) ([]jenkinsML.BuildResponse, error) {
-	builds := make([]jenkinsML.BuildResponse, 0)
+func (jc *Client) ListBuilds(jobName string, limit int, withConsole bool) ([]jenkinsTY.BuildResponse, error) {
+	builds := make([]jenkinsTY.BuildResponse, 0)
 	buildIds, err := jc.api.GetAllBuildIds(jc.ctx, jobName)
 	if err != nil {
 		return nil, err
@@ -280,6 +295,7 @@ func (jc *Client) DownloadArtifacts(jobName string, buildNumber int, toDirectory
 }
 
 // Build a job with parameters
+// returns queue id
 func (jc *Client) Build(name string, parameters map[string]string) (int64, error) {
 	return jc.api.BuildJob(jc.ctx, name, parameters)
 }

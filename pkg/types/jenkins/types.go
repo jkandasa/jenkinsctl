@@ -20,8 +20,9 @@ type Artifact struct {
 
 // BuildResponse struct
 type BuildResponse struct {
-	URL             string                   `json:"url" yaml:"url" structs:"url"`
+	QueueID         int64                    `json:"queueId" yaml:"queue_id" structs:"queue id"`
 	Number          int64                    `json:"number" yaml:"number" structs:"number"`
+	URL             string                   `json:"url" yaml:"url" structs:"url"`
 	TriggeredBy     string                   `json:"triggeredBy" yaml:"triggered_by" structs:"triggered by"`
 	Parameters      []Parameter              `json:"parameters" yaml:"parameters" structs:"parameters"`
 	InjectedEnvVars map[string]string        `json:"injectedEnvVars" yaml:"injected_env_vars" structs:"injected env var"`

@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/fatih/structs"
-	cliML "github.com/jkandasa/jenkinsctl/pkg/model/cli"
+	cliYTY "github.com/jkandasa/jenkinsctl/pkg/types/cli"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,7 +24,7 @@ func FileToStruct(filename string, out interface{}) error {
 }
 
 func GetResource(bytes []byte) (interface{}, error) {
-	kindData := &cliML.Kind{}
+	kindData := &cliYTY.Kind{}
 	err := yaml.Unmarshal(bytes, kindData)
 	if err != nil {
 		return nil, err
@@ -33,11 +33,11 @@ func GetResource(bytes []byte) (interface{}, error) {
 	var resource interface{}
 
 	switch kindData.Kind {
-	case cliML.KindTypeBuild:
-		resource = &cliML.KindBuild{}
+	case cliYTY.KindTypeBuild:
+		resource = &cliYTY.KindBuild{}
 
-	case cliML.KindTypeJob:
-		resource = &cliML.KindJob{}
+	case cliYTY.KindTypeJob:
+		resource = &cliYTY.KindJob{}
 
 	default:
 		return nil, fmt.Errorf("unknown kind:%s", kindData.Kind)

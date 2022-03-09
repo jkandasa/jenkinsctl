@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	model "github.com/jkandasa/jenkinsctl/pkg/model"
-	"github.com/jkandasa/jenkinsctl/pkg/model/config"
 	"github.com/jkandasa/jenkinsctl/pkg/printer"
+	types "github.com/jkandasa/jenkinsctl/pkg/types"
+	"github.com/jkandasa/jenkinsctl/pkg/types/config"
 	homedir "github.com/mitchellh/go-homedir"
 	"gopkg.in/yaml.v2"
 
@@ -25,7 +25,7 @@ const (
 var (
 	cfgFile   string
 	CONFIG    *config.Config  // keep jenkins server details
-	ioStreams model.IOStreams // read and write to this stream
+	ioStreams types.IOStreams // read and write to this stream
 
 	jobContext   string
 	hideHeader   bool
@@ -60,7 +60,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&pretty, "pretty", false, "JSON pretty print")
 }
 
-func Execute(streams model.IOStreams) {
+func Execute(streams types.IOStreams) {
 	ioStreams = streams
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(ioStreams.ErrOut, err)

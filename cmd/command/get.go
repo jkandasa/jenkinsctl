@@ -7,6 +7,7 @@ import (
 
 	jenkins "github.com/jkandasa/jenkinsctl/pkg/jenkins"
 	"github.com/jkandasa/jenkinsctl/pkg/printer"
+	jenkinsTY "github.com/jkandasa/jenkinsctl/pkg/types/jenkins"
 	"github.com/spf13/cobra"
 )
 
@@ -32,8 +33,9 @@ type TableData struct {
 }
 
 var (
-	limit int
-	watch bool
+	limit   int
+	watch   bool
+	queueID int64
 )
 
 func init() {
@@ -44,7 +46,7 @@ func init() {
 
 	getCmd.PersistentFlags().IntVar(&limit, "limit", 5, "limit the number of entries to display")
 	getConsole.PersistentFlags().BoolVarP(&watch, "watch", "w", false, "watch build console logs")
-
+	getBuilds.PersistentFlags().Int64Var(&queueID, "queue-id", 0, "filter by queue id")
 }
 
 var getCmd = &cobra.Command{
@@ -77,7 +79,10 @@ var getBuilds = &cobra.Command{
   jenkinsctl get builds --limit 2 --output json --pretty
 
   # get a particular build details with build number
-  jenkinsctl get build 61`,
+  jenkinsctl get build 61
+
+  # get a particular build details with queue id
+  jenkinsctl get build --queue-id 1234`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		client := jenkins.NewClient(CONFIG, &ioStreams)
@@ -85,17 +90,34 @@ var getBuilds = &cobra.Command{
 			return
 		}
 
-		if len(args) > 0 {
-			buildNumber, err := strconv.Atoi(args[0])
-			if err != nil {
-				fmt.Fprintln(ioStreams.ErrOut, "build should be an integer number", err)
-				return
+		if len(args) > 0 || queueID > 0 {
+			var build *jenkinsTY.BuildResponse
+
+			if len(args) > 0 {
+				buildNumber, err := strconv.Atoi(args[0])
+				if err != nil {
+					fmt.Fprintln(ioStreams.ErrOut, "build should be an integer number", err)
+					return
+				}
+				receivedBuild, err := client.GetBuild(CONFIG.JobContext, buildNumber, false)
+				if err != nil {
+					fmt.Fprintln(ioStreams.ErrOut, "error on getting build details", err)
+					return
+				}
+				build = receivedBuild
+			} else {
+				receivedBuild, err := client.GetBuildByQueueID(CONFIG.JobContext, queueID, limit)
+				if err != nil {
+					fmt.Fprintln(ioStreams.ErrOut, "error on getting build details", err)
+					return
+				}
+				if receivedBuild == nil {
+					fmt.Fprintln(ioStreams.ErrOut, "there is no build available with this queue id in the job:", CONFIG.JobContext)
+					return
+				}
+				build = receivedBuild
 			}
-			build, err := client.GetBuild(CONFIG.JobContext, buildNumber, false)
-			if err != nil {
-				fmt.Fprintln(ioStreams.ErrOut, "error on getting build details", err)
-				return
-			}
+
 			if outputFormat != printer.OutputConsole {
 				printer.Print(ioStreams.Out, nil, build, false, outputFormat, pretty)
 				return
@@ -104,6 +126,7 @@ var getBuilds = &cobra.Command{
 			headers := []string{"key", "value"}
 			rows := make([]interface{}, 0)
 			rows = append(rows, TableData{Key: "URL", Value: build.URL})
+			rows = append(rows, TableData{Key: "Queue ID", Value: fmt.Sprintf("%d", build.QueueID)})
 			rows = append(rows, TableData{Key: "Build Number", Value: fmt.Sprintf("%d", build.Number)})
 			rows = append(rows, TableData{Key: "Triggered By", Value: build.TriggeredBy})
 			rows = append(rows, TableData{Key: "Result", Value: build.Result})
@@ -152,7 +175,7 @@ var getBuilds = &cobra.Command{
 				return
 			}
 
-			headers := []string{"number", "triggered by", "result", "is running", "duration", "timestamp", "revision"}
+			headers := []string{"number", "queue id", "triggered by", "result", "is running", "duration", "timestamp", "revision"}
 			data := make([]interface{}, 0)
 			for _, build := range builds {
 				data = append(data, build)
